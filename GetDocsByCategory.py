@@ -5,8 +5,8 @@ import urllib
 import csv
 from bs4 import BeautifulSoup
 
-inputFile = open("./Simplex/CompSci.csv", 'r')
-outputFile = open("./Simplex/Dump/CompSci.xml", 'a')
+inputFile = open("./Simplex/literature.csv", 'r')
+outputFile = open("./Simplex/Dump/literature.xml", 'a')
 
 reader = csv.reader(inputFile)
 

@@ -1,0 +1,275 @@
+<?xml version="1.0"?><api batchcomplete=""><query><pages><page _idx="45809" pageid="45809" ns="0" title="Dijkstra&#039;s algorithm"><revisions><rev contentformat="text/x-wiki" contentmodel="wikitext" xml:space="preserve">{{Distinguish|Dykstra's projection algorithm}}
+
+{{Infobox algorithm
+|class=[[Search algorithm]]
+|image=[[Image:Dijkstra Animation.gif|Dijkstra's algorithm runtime]]
+|caption = Dijkstra's algorithm to find the shortest path between ''a'' and ''b''.  It picks the unvisited vertex with the lowest distance, calculates the distance through it to each unvisited neighbor, and updates the neighbor's distance if smaller. Mark visited (set to red) when done with neighbors.
+|data=[[Graph (data structure)|Graph]]
+|time= &lt;math&gt;O(|E| + |V| \log|V|)&lt;/math&gt;
+|best-time=
+|average-time=
+|space=
+|optimal=
+|complete=
+}}
+{{graph search algorithm}}
+
+'''Dijkstra's algorithm''' is an [[algorithm]] for finding the [[shortest path problem|shortest paths]] between [[vertex (graph theory)|node]]s in a [[Graph (abstract data type)|graph]], which may represent, for example, road networks.  It was conceived by [[computer scientist]] [[Edsger W. Dijkstra]] in 1956 and published three years later.&lt;ref name=&quot;Dijkstra Interview&quot;&gt;{{cite journal|first=Phil |last=Frana |title=An Interview with Edsger W. Dijkstra|journal=Communications of the ACM|date=August 2010|volume=53|issue=8|pages=41–47|quote=What is the shortest way to travel from Rotterdam to Groningen? It is the algorithm for the shortest path which I designed in about 20 minutes.  One morning I was shopping with my young fiancée, and tired, we sat down on the café terrace to drink a cup of coffee and I was just thinking about whether I could do this, and I then designed the algorithm for the shortest path.|doi=10.1145/1787234.1787249}}&lt;/ref&gt;&lt;ref name=&quot;Dijkstra1959&quot;&gt;{{cite journal | authorlink = Edsger W. Dijkstra | first1 = E. W. | last1 = Dijkstra | url= http://www-m3.ma.tum.de/twiki/pub/MN0506/WebHome/dijkstra.pdf | title = A note on two problems in connexion with graphs | journal = Numerische Mathematik | volume = 1 | year = 1959 | pages = 269–271 | ref = harv | doi = 10.1007/BF01386390}}&lt;/ref&gt;
+
+The algorithm exists in many variants; Dijkstra's original variant found the shortest path between two nodes,{{r|Dijkstra1959}} but a more common variant fixes a single node as the &quot;source&quot; node and finds shortest paths from the source to all other nodes in the graph, producing a [[shortest-path tree]].
+
+For a given source node in the graph, the algorithm finds the shortest path between that node and every other.&lt;ref name=&quot;mehlhorn&quot;/&gt;{{rp|196–206}} It can also be used for finding the shortest paths from a single node to a single destination node by stopping the algorithm once the shortest path to the destination node has been determined. For example, if the nodes of the graph represent cities and edge path costs represent driving distances between pairs of cities connected by a direct road, Dijkstra's algorithm can be used to find the shortest route between one city and all other cities. As a result, the shortest path algorithm is widely used in network [[routing protocol]]s, most notably [[IS-IS]] and Open Shortest Path First ([[OSPF]]). It is also employed as a [[subroutine]] in other algorithms such as [[Johnson's algorithm|Johnson's]].
+
+Dijkstra's original algorithm does not use a [[min-priority queue]] and runs in [[time complexity|time]] &lt;math&gt;O(|V|^2)&lt;/math&gt; (where &lt;math&gt;|V|&lt;/math&gt; is the number of nodes). The idea of this algorithm is also given in {{harvnb|Leyzorek|Gray|Johnson|Ladew|1957}}. The implementation based on a min-priority queue implemented by a [[Fibonacci heap]] and running in &lt;math&gt;O(|E|+|V|\log|V|)&lt;/math&gt; (where &lt;math&gt;|E|&lt;/math&gt; is the number of edges) is due to {{harvnb|Fredman|Tarjan|1984}}.
+This is [[Asymptotic computational complexity|asymptotically]] the fastest known single-source [[shortest path problem|shortest-path algorithm]] for arbitrary [[directed graph]]s with unbounded non-negative weights. However, specialized cases (such as bounded/integer weights, directed acyclic graphs etc.) can indeed be improved further as detailed in {{slink||Specialized variants}}.
+
+In some fields, [[artificial intelligence]] in particular, Dijkstra's algorithm or a variant of it is known as '''uniform-cost search''' and formulated as an instance of the more general idea of [[best-first search]].{{r|felner}}
+
+== History ==
+Dijkstra thought about the shortest path problem when working at the Mathematical Center in Amsterdam in 1956 as a programmer to demonstrate capabilities of a new computer called ARMAC. His objective was to choose both a problem as well as an answer (that would be produced by computer) that non-computing people could understand. He designed the shortest path algorithm and later implemented it for ARMAC for a slightly simplified transportation map of 64 cities in the Netherlands (64, so that 6 bits would be sufficient to encode the city number).&lt;ref name=&quot;Dijkstra Interview&quot;/&gt; A year later, he came across another problem from hardware engineers working on the institute's next computer: minimize the amount of wire needed to connect the pins on the back panel of the machine. As a solution, he re-discovered the algorithm known as [[Prim's algorithm|Prim's minimal spanning tree algorithm]] (known earlier to [[Vojtěch Jarník|Jarník]], and also rediscovered by Prim).&lt;ref name=&quot;EWD841a&quot;&gt;{{citation | last1 = Dijkstra | first1 =Edsger W. | title = Reflections on &quot;A note on two problems in connexion with graphs | url = https://www.cs.utexas.edu/users/EWD/ewd08xx/EWD841a.PDF}}&lt;/ref&gt;&lt;ref&gt;{{citation|first=Robert Endre|last=Tarjan|authorlink=Robert Endre Tarjan|title=Data Structures and Network Algorithms|series=CBMS_NSF Regional Conference Series in Applied Mathematics|volume=44|year=1983|publisher=Society for Industrial and Applied Mathematics|page=75|quote=The third classical minimum spanning tree algorithm was discovered by Jarník and rediscovered by Prim and Dikstra; it is commonly known as Prim's algorithm.}}&lt;/ref&gt; Dijkstra published the algorithm in 1959, two years after Prim and 29 years after Jarník.&lt;ref&gt;R. C. Prim: ''Shortest connection networks and some generalizations''. In: ''Bell System Technical Journal'', 36 (1957), pp.&amp;nbsp;1389–1401.&lt;/ref&gt;&lt;ref&gt;V. Jarník: ''O jistém problému minimálním'' [About a certain minimal problem], Práce Moravské Přírodovědecké Společnosti, 6, 1930, pp.&amp;nbsp;57–63. (in Czech)&lt;/ref&gt;
+
+== Algorithm ==
+[[Image:Dijkstras progress animation.gif|thumb|Illustration of Dijkstra's algorithm search for finding path from a start node (lower left, red) to a goal node (upper right, green) in a [[robotics|robot]] [[motion planning]] problem. Open nodes represent the &quot;tentative&quot; set. Filled nodes are visited ones, with color representing the distance: the greener, the farther. Nodes in all the different directions are explored uniformly, appearing as a more-or-less circular [[wavefront]] as Dijkstra's algorithm uses a [[consistent heuristic|heuristic]] identically equal to 0.]]
+
+Let the node at which we are starting be called the '''initial node'''. Let the '''distance of node ''Y''''' be the distance from the '''initial node''' to ''Y''. Dijkstra's algorithm will assign some initial distance values and will try to improve them step by step.
+
+# Assign to every node a tentative distance value: set it to zero for our initial node and to infinity for all other nodes.
+# Set the initial node as current. Mark all other nodes unvisited. Create a set of all the unvisited nodes called the ''unvisited set''.
+# For the current node, consider all of its unvisited neighbors and calculate their ''tentative'' distances. Compare the newly calculated ''tentative'' distance to the current assigned value and assign the smaller one. For example, if the current node ''A'' is marked with a &lt;!--tentative ((commented out because the distance is NOT tentative.. it cannot change while visiting the neighbors.. so calling it tentative implies that it can still change, which is confusing))--&gt; distance of 6, and the edge connecting it with a neighbor ''B'' has length 2, then the distance to ''B'' (through ''A'') will be 6 + 2 = 8. If B was previously marked with a distance greater than 8 then change it to 8. Otherwise, keep the current value.
+# When we are done considering all of the neighbors of the current node, mark the current node as visited and remove it from the ''unvisited set''. A visited node will never be checked again. 
+&lt;!-- its distance recorded now is final and minimal. ((commented out because the distance is final for the current-node at the point it is taken from the queue.. the distance cannot be dropped while visiting the neighbors.. yet, the current-node remains unvisited until this step.  This is inconsistent and confusing.)) --&gt; 
+# If the destination node has been marked visited (when planning a route between two specific nodes) or if the smallest tentative distance among the nodes in the ''unvisited set'' is infinity (when planning a complete traversal; occurs when there is no connection between the initial node and remaining unvisited nodes), then stop. The algorithm has finished.
+# Otherwise, select the unvisited node that is marked with the smallest tentative distance, set it as the new &quot;current node&quot;, and go back to step 3.
+
+== Description ==
+:'''''Note:''' For ease of understanding, this discussion uses the terms '''intersection''', '''road''' and '''map''' &amp;mdash; however, in formal terminology these terms are '''vertex''', '''edge''' and '''graph''', respectively.''
+
+Suppose you would like to find the ''shortest path'' between two [[Intersection (road)|intersections]] on a city map: a ''starting point'' and a ''destination''. Dijkstra's algorithm initially marks the distance (from the starting point) to every other intersection on the map with ''infinity''.  This is done not to imply there is an infinite distance, but to note that those intersections have not yet been visited; some variants of this method simply leave the intersections' distances ''unlabeled''.  Now, at each iteration, select the ''current intersection''.  For the first iteration, the current intersection will be the starting point, and the distance to it (the intersection's label) will be ''zero''.  For subsequent iterations (after the first), the current intersection will be the ''closest unvisited intersection'' to the starting point (this will be easy to find).
+
+From the current intersection, ''update'' the distance to every unvisited intersection that is directly connected to it. This is done by determining the ''sum'' of the distance between an unvisited intersection and the value of the current intersection, and [[Graph labeling|relabeling]] the unvisited intersection with this value (the sum), if it is less than its current value.  In effect, the intersection is relabeled if the path to it through the current intersection is shorter than the previously known paths.  To facilitate shortest path identification, in pencil, mark the road with an arrow pointing to the relabeled intersection if you label/relabel it, and erase all others pointing to it.  After you have updated the distances to each [[Neighbourhood (graph theory)|neighboring intersection]], mark the current intersection as ''visited'', and select the unvisited intersection with lowest distance (from the starting point) – or the lowest label—as the current intersection.  Nodes marked as visited are labeled with the shortest path from the starting point to it and will not be revisited or returned to.
+
+Continue this process of updating the neighboring intersections with the shortest distances, then marking the current intersection as visited and moving onto the closest unvisited intersection until you have marked the destination as visited.  Once you have marked the destination as visited (as is the case with any visited intersection) you have determined the shortest path to it, from the starting point, and can ''trace your way back, following the arrows in reverse''; in the algorithm's implementations, this is usually done (after the algorithm has reached the destination node) by following the nodes' parents from the destination node up to the starting node; that's why we also keep track of each node's parent.
+
+This algorithm makes no attempt to direct &quot;exploration&quot; towards the destination as one might expect.  Rather, the sole consideration in determining the next &quot;current&quot; intersection is its distance from the starting point.  This algorithm therefore expands outward from the starting point, interactively considering every node that is closer in terms of shortest path distance until it reaches the destination.  When understood in this way, it is clear how the algorithm necessarily finds the shortest path. However, it may also reveal one of the algorithm's weaknesses: its relative slowness in some topologies.
+
+== Pseudocode ==
+
+In the following algorithm, the code {{mono|u ← vertex in ''Q'' with min dist[u]}}, searches for the vertex {{mono|&lt;var&gt;u&lt;/var&gt;}} in the vertex set {{mono|&lt;var&gt;Q&lt;/var&gt;}} that has the least {{mono|dist[&lt;var&gt;u&lt;/var&gt;]}} value. {{mono|length(&lt;var&gt;u&lt;/var&gt;, &lt;var&gt;v&lt;/var&gt;)}} returns the length of the edge joining (i.e. the distance between) the two neighbor-nodes {{mono|&lt;var&gt;u&lt;/var&gt;}} and {{mono|&lt;var&gt;v&lt;/var&gt;}}. The variable {{mono|&lt;var&gt;alt&lt;/var&gt;}} on line 17 is the length of the path from the root node to the neighbor node {{mono|&lt;var&gt;v&lt;/var&gt;}} if it were to go through {{mono|&lt;var&gt;u&lt;/var&gt;}}. If this path is shorter than the current shortest path recorded for {{mono|&lt;var&gt;v&lt;/var&gt;}}, that current path is replaced with this {{mono|&lt;var&gt;alt&lt;/var&gt;}} path. The {{mono|prev}} array is populated with a pointer to the &quot;next-hop&quot; node on the source graph to get the shortest route to the source.
+[[File:DijkstraDemo.gif|thumb|A demo of Dijkstra's algorithm based on Euclidean distance. Red lines are the shortest path covering, i.e., connecting ''u'' and prev[''u'']. Blue lines indicate where relaxing happens, i.e., connecting ''v'' with a node ''u'' in ''Q'', which gives a shorter path from the source to ''v''.]]
+
+  1  '''function''' Dijkstra(''Graph'', ''source''):
+  2
+  3      create vertex set Q
+  4
+  5      '''for each''' vertex ''v'' in ''Graph'':             ''// Initialization''
+  6          dist[''v''] ← INFINITY                  ''// Unknown distance from source to v
+  7          prev[''v''] ← UNDEFINED                 ''// Previous node in optimal path from source
+  8          add ''v'' to ''Q''                          ''// All nodes initially in Q (unvisited nodes)
+  9
+ 10      dist[''source''] ← 0                        ''// Distance from source to source''
+ 11      
+ 12      '''while''' ''Q'' is not empty:
+ 13          ''u'' ← vertex in ''Q'' with min dist[u]    ''// Node with the least distance will be selected first''
+ 14          remove ''u'' from ''Q'' 
+ 15          
+ 16          '''for each''' neighbor ''v'' of ''u'':           ''// where v is still in Q.''
+ 17              ''alt'' ← dist[''u''] + length(''u'', ''v'')
+ 18              '''if''' ''alt'' &lt; dist[''v'']:               ''// A shorter path to v has been found
+ 19                  dist[''v''] ← ''alt'' 
+ 20                  prev[''v''] ← ''u'' 
+ 21
+ 22      '''return''' dist[], prev[]
+
+If we are only interested in a shortest path between vertices {{mono|&lt;var&gt;source&lt;/var&gt;}} and {{mono|&lt;var&gt;target&lt;/var&gt;}}, we can terminate the search after line 13 if {{mono|&lt;var&gt;u&lt;/var&gt; {{=}} &lt;var&gt;target&lt;/var&gt;}}.
+Now we can read the shortest path from {{mono|&lt;var&gt;source&lt;/var&gt;}} to {{mono|&lt;var&gt;target&lt;/var&gt;}} by reverse iteration:
+
+ 1  ''S'' ← empty sequence
+ 2  ''u'' ← ''target''
+ 3  '''while''' prev[''u''] is defined:                  ''// Construct the shortest path with a stack S
+ 4      insert ''u'' at the beginning of ''S''         ''// Push the vertex onto the stack
+ 5      ''u'' ← prev[''u'']                            ''// Traverse from target to source
+ 6  insert ''u'' at the beginning of ''S''             ''// Push the source onto the stack
+
+Now sequence {{mono|&lt;var&gt;S&lt;/var&gt;}} is the list of vertices constituting one of the shortest paths from {{mono|&lt;var&gt;source&lt;/var&gt;}} to {{mono|&lt;var&gt;target&lt;/var&gt;}}, or the empty sequence if no path exists.
+
+A more general problem would be to find all the shortest paths between {{mono|&lt;var&gt;source&lt;/var&gt;}} and {{mono|&lt;var&gt;target&lt;/var&gt;}} (there might be several different ones of the same length). Then instead of storing only a single node in each entry of {{mono|prev[]}} we would store all nodes satisfying the relaxation condition. For example, if both {{mono|&lt;var&gt;r&lt;/var&gt;}} and {{mono|&lt;var&gt;source&lt;/var&gt;}} connect to {{mono|&lt;var&gt;target&lt;/var&gt;}} and both of them lie on different shortest paths through {{mono|&lt;var&gt;target&lt;/var&gt;}} (because the edge cost is the same in both cases), then we would add both {{mono|&lt;var&gt;r&lt;/var&gt;}} and {{mono|&lt;var&gt;source&lt;/var&gt;}} to {{mono|prev[&lt;var&gt;target&lt;/var&gt;]}}. When the algorithm completes, {{mono|prev[]}} data structure will actually describe a graph that is a subset of the original graph with some edges removed. Its key property will be that if the algorithm was run with some starting node, then every path from that node to any other node in the new graph will be the shortest path between those nodes in the original graph, and all paths of that length from the original graph will be present in the new graph. Then to actually find all these shortest paths between two given nodes we would use a path finding algorithm on the new graph, such as [[depth-first search]].
+
+===Using a priority queue===
+
+A [[min-priority queue]] is an abstract data type that provides 3 basic operations : {{mono|add_with_priority()}}, {{mono|decrease_priority()}} and {{mono|extract_min()}}. As mentioned earlier, using such a data structure can lead to faster computing times than using a basic queue. Notably, [[Fibonacci heap]] {{harv|Fredman|Tarjan|1984}} or [[Brodal queue]] offer optimal implementations for those 3 operations. As the algorithm is slightly different, we mention it here, in pseudo-code as well :
+
+ 1  '''function''' Dijkstra(''Graph'', ''source''):
+ 2      dist[''source''] ← 0                                    ''// Initialization
+ 3
+ 4      create vertex set Q
+ 5
+ 6      '''for each''' vertex ''v'' in ''Graph'':           
+ 7          '''if''' ''v'' ≠ ''source''
+ 8              dist[''v''] ← INFINITY                          ''// Unknown distance from source to v
+ 9              prev[''v''] ← UNDEFINED                         ''// Predecessor of v
+ 10
+ 11         ''Q''.add_with_priority(''v'', dist[''v''])
+ 12
+ 13
+ 14     '''while''' ''Q'' is not empty:                              ''// The main loop
+ 15         ''u'' ← ''Q''.extract_min()                            ''// Remove and return best vertex
+ 16         '''for each''' neighbor ''v'' of ''u'':                      ''// only v that is still in Q
+ 17             ''alt'' ← dist[''u''] + length(''u'', ''v'') 
+ 18             '''if''' ''alt'' &lt; dist[''v'']
+ 19                 dist[''v''] ← ''alt''
+ 20                 prev[''v''] ← ''u''
+ 21                 ''Q''.decrease_priority(''v'', ''alt'')
+ 22
+ 23     '''return''' dist[], prev[]
+
+Instead of filling the priority queue with all nodes in the initialization phase, it is also possible to initialize it to contain only ''source''; then, inside the {{mono|'''if''' ''alt'' &lt; dist[''v'']}} block, the node must be inserted if not already in the queue (instead of performing a {{mono|decrease_priority}} operation).&lt;ref name=&quot;mehlhorn&quot;/&gt;{{rp|198}}
+
+Other data structures can be used to achieve even faster computing times in practice.&lt;ref name=chen_07&gt;{{cite book|first1=M.|last1=Chen|first2=R. A.|last2=Chowdhury|first3=V.|last3=Ramachandran|first4=D. L.|last4=Roche|first5=L.|last5=Tong|title=Priority Queues and Dijkstra’s Algorithm &amp;mdash; UTCS Technical Report TR-07-54 &amp;mdash; 12 October 2007|publisher=The University of Texas at Austin, Department of Computer Sciences|location=Austin, Texas|year=2007|url=http://www.cs.sunysb.edu/~rezaul/papers/TR-07-54.pdf|ref=chen}}&lt;/ref&gt;
+
+== Proof of correctness ==
+
+Proof is by induction on the number of visited nodes.
+
+Invariant hypothesis: For each visited node {{mono|v}}, {{mono|dist[v]}} is the shortest distance from {{mono|source}} to {{mono|v}}; and for each unvisited node {{mono|u}}, {{mono|dist[u]}} is the shortest distance via visited nodes only from {{mono|source}} to {{mono|u}} (if such a path exists, otherwise infinity; note we do not assume {{mono|dist[u]}} is the actual shortest distance for unvisited nodes).
+
+The base case is when there is just one visited node, namely the initial node {{mono|source}}, and the hypothesis is trivial.
+
+Assume the hypothesis for ''n-1'' visited nodes. Now we choose an edge {{mono|vu}} where {{mono|u}} has the least {{mono|dist[u]}} of any unvisited node and the edge {{mono|vu}} is such that {{mono|1=dist[u] = dist[v] + length[v,u]}}. 
+{{mono|dist[u]}} must be the shortest distance from {{mono|source}} to {{mono|u}} because if there were a shorter path, and if {{mono|w}} was the first unvisited node on that path then by hypothesis {{mono|dist[w]}} &gt; {{mono|dist[u]}} creating a contradiction. Similarly if there was a shorter path to {{mono|u}} without using unvisited nodes, and if the last but one node on that path were {{mono|w}}, then we would have had {{mono|1=dist[u] = dist[w] + dist[w,u]}}, a contradiction. 
+
+After processing {{mono|u}} it will still be true that for each unvisited node {{mono|w}}, {{mono|dist[w]}} is the shortest distance from {{mono|source}} to {{mono|w}} using visited nodes only, since if there were a shorter path which doesn't visit {{mono|u}} we would have found it previously, and if there is a shorter path using {{mono|u}} we update it when processing {{mono|u}} .
+
+== Running time ==
+
+Bounds of the running time of Dijkstra's algorithm on a graph with edges &lt;math&gt;E&lt;/math&gt; and vertices &lt;math&gt;V&lt;/math&gt; can be expressed as a function of the number of edges, denoted &lt;math&gt;|E|&lt;/math&gt;, and the number of vertices, denoted &lt;math&gt;|V|&lt;/math&gt;, using [[Big O notation#Graph theory|big-O notation]]. How tight a bound is possible depends on the way the vertex set &lt;math&gt;Q&lt;/math&gt; is implemented. In the following, upper bounds can be simplified because &lt;math&gt;|E| = O(|V|^2)&lt;/math&gt; for any graph, but that simplification disregards the fact that in some problems, other upper bounds on &lt;math&gt;|E|&lt;/math&gt; may hold.
+
+For any implementation of the vertex set &lt;math&gt;Q&lt;/math&gt;, the running time is in
+:&lt;math&gt;O(|E| \cdot T_\mathrm{dk} + |V| \cdot T_\mathrm{em})&lt;/math&gt;,
+where &lt;math&gt;T_\mathrm{dk}&lt;/math&gt; and &lt;math&gt;T_\mathrm{em}&lt;/math&gt; are the complexities of the ''decrease-key'' and ''extract-minimum'' operations in &lt;math&gt;Q&lt;/math&gt;, respectively. The simplest implementation of Dijkstra's algorithm stores the vertex set &lt;math&gt;Q&lt;/math&gt; as an ordinary linked list or array, and extract-minimum is simply a linear search through all vertices in &lt;math&gt;Q&lt;/math&gt;. In this case, the running time is &lt;math&gt;O(|E| + |V|^2) = O(|V|^2)&lt;/math&gt;.
+
+For [[sparse graph]]s, that is, graphs with far fewer than &lt;math&gt;|V|^2&lt;/math&gt; edges, Dijkstra's algorithm can be implemented more efficiently by storing the graph in the form of [[adjacency list]]s and using a [[self-balancing binary search tree]], [[binary heap]], [[pairing heap]], or [[Fibonacci heap]] as a [[priority queue]] to implement extracting minimum efficiently. To perform decrease-key steps in a binary heap efficiently, it is necessary to use an auxiliary data structure that maps each vertex to its position in the heap, and to keep this structure up to date as the priority queue &lt;math&gt;Q&lt;/math&gt; changes. With a self-balancing binary search tree or binary heap, the algorithm requires
+:&lt;math&gt;\Theta((|E| + |V|) \log |V|)&lt;/math&gt;
+time in the worst case; for connected graphs this time bound can be simplified to &lt;math&gt;\Theta( | E | \log | V | )&lt;/math&gt;.  The [[Fibonacci heap]] improves this to
+:&lt;math&gt;O(|E| + |V| \log|V|)&lt;/math&gt;.
+
+When using binary heaps, the [[Best, worst and average case|average case]] time complexity is lower than the worst-case: assuming edge costs are drawn independently from a common [[probability distribution]], the expected number of ''decrease-key'' operations is bounded by &lt;math&gt;O(|V| \log (|E|/|V|))&lt;/math&gt;, giving a total running time of&lt;ref name=&quot;mehlhorn&quot;&gt;{{cite book |last1=Mehlhorn |first1=Kurt |author1-link=Kurt Mehlhorn|first2=Peter |last2=Sanders|author2-link=Peter Sanders (computer scientist) |title=Algorithms and Data Structures: The Basic Toolbox |publisher=Springer |year=2008 |url=http://people.mpi-inf.mpg.de/~mehlhorn/ftp/Toolbox/ShortestPaths.pdf}}&lt;/ref&gt;{{rp|199–200}}
+:&lt;math&gt;O(|E| + |V| \log \frac{|E|}{|V|} \log |V|)&lt;/math&gt;.
+
+===Practical optimizations and infinite graphs===
+In common presentations of Dijkstra's algorithm, initially all nodes are entered into the priority queue. This is, however, not necessary: the algorithm can start with a priority queue that contains only one item, and insert new items as they are discovered (instead of doing a decrease-key, check whether the key is in the queue; if it is, decrease its key, otherwise insert it).{{r|mehlhorn}}{{rp|198}} This variant has the same worst-case bounds as the common variant, but maintains a smaller priority queue in practice, speeding up the queue operations.&lt;ref name=&quot;felner&quot;&gt;{{cite conference |first=Ariel |last=Felner |title=Position Paper: Dijkstra's Algorithm versus Uniform Cost Search or a Case Against Dijkstra's Algorithm |conference=Proc. 4th Int'l Symp. on Combinatorial Search |year=2011 |url=http://www.aaai.org/ocs/index.php/SOCS/SOCS11/paper/view/4017/4357}} In a route-finding problem, Felner finds that the queue can be a factor 500–600 smaller, taking some 40% of the running time.&lt;/ref&gt;
+
+Moreover, not inserting all nodes in a graph makes it possible to extend the algorithm to find the shortest path from a single source to the closest of a set of target nodes on infinite graphs or those too large to represent in memory. The resulting algorithm is called ''uniform-cost search'' (UCS) in the artificial intelligence literature{{r|felner}}&lt;ref name=&quot;aima&quot;&gt;{{Cite AIMA|3|pages=75, 81}}&lt;/ref&gt;&lt;ref&gt;Sometimes also ''least-cost-first search'': {{cite journal |last=Nau |first=Dana S. |title=Expert computer systems |journal=Computer |publisher=IEEE |volume=16 |issue=2 |year=1983 |pages=63–85 |url=https://www.cs.umd.edu/~nau/papers/nau1983expert.pdf |doi=10.1109/mc.1983.1654302}}&lt;/ref&gt; and can be expressed in pseudocode as
+
+ 
+ 
+  '''procedure''' ''UniformCostSearch''(Graph, start, goal)
+   node ← start
+   cost ← 0
+   frontier ← priority queue containing node only
+   explored ← empty set
+   '''do'''
+     '''if''' frontier is empty
+       '''return''' failure
+     node ← frontier.pop()
+     '''if''' node is goal
+       '''return''' solution
+     explored.add(node)
+     '''for each''' of node's neighbors n
+       '''if''' n is not in explored or frontier
+           frontier.add(n)
+       '''else if''' n is in frontier with higher cost
+           replace existing node with n
+
+The complexity of this algorithm can be expressed in an alternative way for very large graphs: when {{math|''C''&lt;sup&gt;*&lt;/sup&gt;}} is the length of the shortest path from the start node to any node satisfying the &quot;goal&quot; predicate, each edge has cost at least {{mvar|ε}}, and the number of neighbors per node is bounded by {{mvar|b}}, then the algorithm's worst-case time and space complexity are both in {{math|''O''(''b''&lt;sup&gt;1+⌊''C''&lt;sup&gt;*&lt;/sup&gt; {{frac}} ''ε''⌋&lt;/sup&gt;)}}.{{r|aima}}
+
+Further optimizations of Dijkstra's algorithm for the single-target case include [[bidirectional search|bidirectional]] variants, goal-directed variants such as the [[A* algorithm]] (see {{slink||Related problems and algorithms}}), graph pruning to determine which nodes are likely to form the middle segment of shortest paths (reach-based routing), and hierarchical decompositions of the input graph that reduce {{math|''s''–''t''}} routing to connecting {{mvar|s}} and {{mvar|t}} to their respective &quot;transit nodes&quot; followed by shortest-path computation between these transit nodes using a &quot;highway&quot;.&lt;ref name=&quot;speedup&quot;&gt;{{cite conference |last1=Wagner |first1=Dorothea |first2=Thomas |last2=Willhalm |title=Speed-up techniques for shortest-path computations |conference=STACS |pages=23–36 |year=2007}}&lt;/ref&gt;
+Combinations of such techniques may be needed for optimal practical performance on specific problems.&lt;ref&gt;{{cite journal |last1=Bauer |first1=Reinhard |first2=Daniel |last2=Delling |first3=Peter |last3=Sanders |first4=Dennis |last4=Schieferdecker |first5=Dominik |last5=Schultes |first6=Dorothea |last6=Wagner |title=Combining hierarchical and goal-directed speed-up techniques for Dijkstra's algorithm |journal=J. Experimental Algorithmics |volume=15 |year=2010}}&lt;/ref&gt;
+
+&lt;span id=&quot;specialized variants&quot;&gt;
+
+===Specialized variants===
+When arc weights are small integers (bounded by a parameter ''C''), a [[monotone priority queue]] can be used to speed up Dijkstra's algorithm. The first algorithm of this type was '''Dial's algorithm''', which used a [[bucket queue]] to obtain a running time &lt;math&gt;O(|E|+\operatorname{diam}(G))&lt;/math&gt; that depends on the weighted [[Distance (graph theory)|diameter]] of a graph with integer edge weights {{harv|Dial|1969}}. The use of a [[Van Emde Boas tree]] as the priority queue brings the complexity to &lt;math&gt;O(|E|\log\log C)&lt;/math&gt; {{harv|Ahuja|Mehlhorn|Orlin|Tarjan|1990}}. Another interesting implementation based on a combination of a new [[radix heap]] and the well-known Fibonacci heap runs in time &lt;math&gt;O(|E|+|V|\sqrt{\log C})&lt;/math&gt; {{harv|Ahuja|Mehlhorn|Orlin|Tarjan|1990}}. Finally, the best algorithms in this special case are as follows. The algorithm given by {{harv|Thorup|2000}} runs in &lt;math&gt;O(|E|\log\log|V|)&lt;/math&gt; time and the algorithm given by {{harv|Raman|1997}} runs in &lt;math&gt;O(|E| + |V|\min\{(\log|V|)^{1/3+\epsilon}, (\log C)^{1/4+\epsilon}\})&lt;/math&gt; time.
+
+Also, for [[directed acyclic graph]]s, it is possible to find shortest paths from a given starting vertex in linear &lt;math&gt;O(|E|+|V|)&lt;/math&gt; time, by processing the vertices in a [[Topological sorting|topological order]], and calculating the path length for each vertex to be the minimum length obtained via any of its incoming edges.&lt;ref&gt;http://www.boost.org/doc/libs/1_44_0/libs/graph/doc/dag_shortest_paths.html&lt;/ref&gt;&lt;ref&gt;{{harvnb|Cormen|Leiserson|Rivest|Stein|2001|p=655}}&lt;/ref&gt;
+
+In the special case of integer weights and undirected graphs, Dijkstra's algorithm can be completely countered with a linear &lt;math&gt;O(|V|+|E|)&lt;/math&gt;  complexity algorithm, given by {{harv|Thorup|1999}}.
+&lt;/span&gt;
+
+== Related problems and algorithms ==
+
+The functionality of Dijkstra's original algorithm can be extended with a variety of modifications. For example, sometimes it is desirable to present solutions which are less than mathematically optimal. To obtain a ranked list of less-than-optimal solutions, the optimal solution is first calculated. A single edge appearing in the optimal solution is removed from the graph, and the optimum solution to this new graph is calculated. Each edge of the original solution is suppressed in turn and a new shortest-path calculated. The secondary solutions are then ranked and presented after the first optimal solution.
+
+Dijkstra's algorithm is usually the working principle behind [[link-state routing protocol]]s, [[OSPF]] and [[IS-IS]] being the most common ones.
+
+Unlike Dijkstra's algorithm, the [[Bellman–Ford algorithm]] can be used on graphs with negative edge weights, as long as the graph contains no [[negative cycle]] reachable from the source vertex ''s''. The presence of such cycles means there is no shortest path, since the total weight becomes lower each time the cycle is traversed. It is possible to adapt Dijkstra's algorithm to handle negative weight edges by combining it with the Bellman-Ford algorithm (to remove negative edges and detect negative cycles), such an algorithm is called [[Johnson's algorithm]].
+
+The [[A-star algorithm|A* algorithm]] is a generalization of Dijkstra's algorithm that cuts down on the size of the subgraph that must be explored, if additional information is available that provides a lower bound on the &quot;distance&quot; to the target. This approach can be viewed from the perspective of [[linear programming]]: there is a natural [[Shortest path problem#Linear programming formulation|linear program for computing shortest paths]], and solutions to its [[dual linear program]] are feasible if and only if they form a [[consistent heuristic]] (speaking roughly, since the sign conventions differ from place to place in the literature). This feasible dual / consistent heuristic defines a non-negative [[reduced cost]] and A* is essentially running Dijkstra's algorithm with these reduced costs. If the dual satisfies the weaker condition of [[Admissible heuristic|admissibility]], then A* is instead more akin to the Bellman–Ford algorithm.
+
+The process that underlies Dijkstra's algorithm is similar to the [[Greedy algorithm|greedy]] process used in [[Prim's algorithm]].  Prim's purpose is to find a [[minimum spanning tree]] that connects all nodes in the graph; Dijkstra is concerned with only two nodes. Prim's does not evaluate the total weight of the path from the starting node, only the individual path.
+
+[[Breadth-first search]] can be viewed as a special-case of Dijkstra's algorithm on unweighted graphs, where the priority queue degenerates into a FIFO queue.
+
+The [[fast marching method]] can be viewed as a continuous version of Dijkstra's algorithm which computes the geodesic distance on a triangle mesh.
+
+=== Dynamic programming perspective ===
+
+From a [[dynamic programming]] point of view, Dijkstra's algorithm is a successive approximation scheme that solves the dynamic programming functional equation for the shortest path problem by the '''Reaching''' method.&lt;ref name=sniedovich_06&gt;{{cite journal | last = Sniedovich | first = M. | title = Dijkstra’s algorithm revisited: the dynamic programming connexion | journal = Journal of Control and Cybernetics | volume = 35 | issue = 3 | pages = 599–620 | year = 2006 | url = http://matwbn.icm.edu.pl/ksiazki/cc/cc35/cc3536.pdf | format = [[PDF]]}} [http://www.ifors.ms.unimelb.edu.au/tutorial/dijkstra_new/index.html Online version of the paper with interactive computational modules.]&lt;/ref&gt;&lt;ref name=denardo_03&gt;{{cite book | last = Denardo | first = E.V. | title = Dynamic Programming: Models and Applications | publisher = [[Dover Publications]] | location = Mineola, NY | year = 2003 | isbn = 978-0-486-42810-9}}&lt;/ref&gt;&lt;ref name=sniedovich_10&gt;{{cite book | last = Sniedovich | first = M. | title = Dynamic Programming: Foundations and Principles | publisher = [[Francis &amp; Taylor]] | year = 2010 | isbn = 978-0-8247-4099-3  }}&lt;/ref&gt;
+
+In fact, Dijkstra's explanation of the logic behind the algorithm,&lt;ref&gt;{{harvnb|Dijkstra|1959|p=270}}&lt;/ref&gt; namely
+{{quote|
+'''Problem 2.''' Find the path of minimum total length between two given nodes &lt;math&gt;P&lt;/math&gt; and &lt;math&gt;Q&lt;/math&gt;.
+
+We use the fact that, if &lt;math&gt;R&lt;/math&gt; is a node on the minimal path from &lt;math&gt;P&lt;/math&gt; to &lt;math&gt;Q&lt;/math&gt;, knowledge of the latter implies the knowledge of the minimal path from &lt;math&gt;P&lt;/math&gt; to &lt;math&gt;R&lt;/math&gt;.
+}}
+
+is a paraphrasing of [[Richard Bellman|Bellman's]] famous [[Principle of Optimality]] in the context of the shortest path problem.
+
+== See also ==
+{{portal|Computer science}}
+* [[A* search algorithm]]
+* [[Bellman–Ford algorithm]]
+* [[Euclidean shortest path]]
+* [[Flood fill]]
+* [[Floyd–Warshall algorithm]]
+* [[Johnson's algorithm]]
+* [[Longest path problem]]
+
+==Notes==
+{{reflist}}
+
+== References ==
+* {{cite book | author1-link = Thomas H. Cormen | first1 = Thomas H. | last1 = Cormen | author2-link = Charles E. Leiserson | first2 = Charles E. | last2 = Leiserson | author3-link = Ronald L. Rivest | first3 = Ronald L. | last3 = Rivest | author4-link = Clifford Stein | first4 = Clifford | last4 = Stein | title = [[Introduction to Algorithms]] | edition = Second | publisher = [[MIT Press]] and [[McGraw–Hill]] | year = 2001 | isbn = 0-262-03293-7 | chapter = Section 24.3: Dijkstra's algorithm | pages = 595–601 | ref = harv}}
+* {{cite journal
+ | last = Dial | first = Robert B.
+ | doi = 10.1145/363269.363610
+ | issue = 11
+ | journal = [[Communications of the ACM]]
+ | pages = 632–633
+ | title = Algorithm 360: Shortest-path forest with topological ordering [H]
+ | volume = 12
+ | year = 1969
+ | ref = harv}}
+* {{cite conference|first1=Michael Lawrence|last1=Fredman|authorlink1=Michael Fredman|first2=Robert E.|last2=Tarjan|authorlink2=Robert Tarjan|title=Fibonacci heaps and their uses in improved network optimization algorithms|conference=25th Annual Symposium on Foundations of Computer Science|year=1984|publisher=[[IEEE]]|pages=338&amp;ndash;346|ref=harv|doi=10.1109/SFCS.1984.715934}}
+* {{cite journal|first1=Michael Lawrence|last1=Fredman|authorlink1=Michael Fredman|first2=Robert E.|last2=Tarjan|authorlink2=Robert Tarjan|title=Fibonacci heaps and their uses in improved network optimization algorithms|journal=Journal of the Association for Computing Machinery|volume=34|year=1987|pages=596&amp;ndash;615|url=http://portal.acm.org/citation.cfm?id=28874|ref=harv|doi=10.1145/28869.28874|issue=3}}
+* {{cite journal | first1 = F. Benjamin | last1 = Zhan | first2 = Charles E. | last2 = Noon |date=February 1998 | title = Shortest Path Algorithms: An Evaluation Using Real Road Networks | journal = [[Transportation Science]] | volume = 32 | issue = 1 | pages = 65–73 | doi = 10.1287/trsc.32.1.65}}
+* {{cite book|first1=M.|last1=Leyzorek|first2=R. S.|last2=Gray|first3=A. A.|last3=Johnson|first4=W. C.|last4=Ladew|first5=S. R.|last5=Meaker, Jr.|first6=R. M.|last6=Petry|first7=R. N.|last7=Seitz|title=Investigation of Model Techniques &amp;mdash; First Annual Report &amp;mdash; 6 June 1956 &amp;mdash; 1 July 1957 &amp;mdash; A Study of Model Techniques for Communication Systems|publisher=Case Institute of Technology|location=Cleveland, Ohio|year=1957|ref=harv}}
+* {{cite journal|first1=D.E.|last1=Knuth|title=A Generalization of Dijkstra's Algorithm|journal=[[Information Processing Letters]]|volume=6|number=1|pages=1–5|year=1977|authorlink1=Donald Knuth|doi=10.1016/0020-0190(77)90002-3}}
+* {{cite journal|first1=Ravindra K.|last1=Ahuja|first2=Kurt|last2=Mehlhorn|first3=James B.|last3=Orlin|first4=Robert E.|last4=Tarjan|title=Faster Algorithms for the Shortest Path Problem|journal=Journal of Association for Computing Machinery (ACM)|volume=37|number=2|pages=213–223| date=April 1990 |doi=10.1145/77600.77615|ref=harv}}
+*{{cite journal|first1=Rajeev|last1=Raman|title=Recent results on the single-source shortest paths problem|journal=SIGACT News|volume=28|issue=2|pages=81–87|year=1997|ref=harv|doi=10.1145/261342.261352}}
+*{{cite journal|first1=Mikkel|last1=Thorup|title=On RAM priority Queues|journal=SIAM Journal on Computing|volume=30|issue=1|pages=86–109|year=2000|doi=10.1137/S0097539795288246|ref=harv}}
+*{{cite journal|first1=Mikkel|last1=Thorup|title=Undirected single-source shortest paths with positive integer weights in linear time|journal=journal of the ACM|volume=46|issue=3|pages=362–394|year=1999|doi=10.1145/316542.316548|ref=harv}}
+
+== External links ==
+{{Commons category|Dijkstra's algorithm}}
+* [http://purl.umn.edu/107247 Oral history interview with Edsger W. Dijkstra],  [[Charles Babbage Institute]] University of Minnesota, Minneapolis.
+{{Use dmy dates|date=February 2011}}
+*[http://blog.cleancoder.com/uncle-bob/2016/10/26/DijkstrasAlg.html Implementation of Dijkstra's algorithm using TDD], [[Robert Cecil Martin]], The Clean Code Blog
+
+[[Category:1959 in computer science]]
+[[Category:Graph algorithms]]
+[[Category:Search algorithms]]
+[[Category:Routing algorithms]]
+[[Category:Combinatorial optimization]]
+[[Category:Articles with example pseudocode]]
+[[Category:Dutch inventions]]
+[[Category:Edsger W. Dijkstra]]</rev></revisions></page></pages></query></api>

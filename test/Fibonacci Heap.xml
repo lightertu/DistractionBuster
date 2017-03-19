@@ -1,0 +1,107 @@
+<?xml version="1.0"?><api batchcomplete=""><query><pages><page _idx="254142" pageid="254142" ns="0" title="Fibonacci heap"><revisions><rev contentformat="text/x-wiki" contentmodel="wikitext" xml:space="preserve">{{Infobox data structure
+|name=Fibonacci heap
+|type=[[Heap_(data_structure)|heap]]
+|invented_by=
+|invented_year=1984
+|space_avg=
+|space_worst=
+|search_avg=
+|search_worst=
+|insert_avg=''Θ''(1)
+|insert_worst=
+|delete_min_avg=O(log ''n'')
+|delete_min_worst=&amp;nbsp;
+|find_min_avg=''Θ''(1)
+|find_min_worst=&amp;nbsp;
+|decrease_key_avg=''Θ''(1)
+|decrease_key_worst=&amp;nbsp;
+|merge_avg=''Θ''(1)
+|merge_worst=&amp;nbsp;
+}}
+
+In [[computer science]], a '''Fibonacci heap''' is a [[data structure]] for [[priority queue]] operations, consisting of a collection of  [[Heap (data structure)|heap-ordered trees]]. It has a better [[amortized analysis|amortized]] running time than many other priority queue data structures including the [[binary heap]] and [[binomial heap]]. [[Michael Fredman|Michael L. Fredman]] and [[Robert Tarjan|Robert E. Tarjan]] developed Fibonacci heaps in 1984 and published them in a scientific journal in 1987. They named Fibonacci heaps after the [[Fibonacci number]]s, which are used in their running time analysis.
+
+For the Fibonacci heap, the find-minimum operation takes constant (''[[Big O notation|O]]''(1)) amortized time.&lt;ref&gt;{{Introduction to Algorithms|2|chapter=Chapter 20: Fibonacci Heaps |pages=476&amp;ndash;497}} Third edition p. 518.&lt;/ref&gt; The insert and decrease key operations also work in constant amortized time.&lt;ref name=&quot;Fredman And Tarjan&quot;/&gt; Deleting an element (most often used in the special case of deleting the minimum element) works in ''O''(log ''n'') amortized time, where ''n'' is the size of the heap.&lt;ref name=&quot;Fredman And Tarjan&quot;/&gt; This means that starting from an empty data structure, any sequence of ''a'' insert and decrease key operations and ''b'' delete operations would take ''O''(''a''&amp;nbsp;+&amp;nbsp;''b''&amp;nbsp;log&amp;nbsp;''n'') worst case time, where ''n'' is the maximum heap size. In a binary or binomial heap such a sequence of operations would take ''O''((''a''&amp;nbsp;+&amp;nbsp;''b'') log ''n'') time. A Fibonacci heap is thus better than a binary or binomial heap when ''b'' is smaller than ''a'' by a non-constant factor. It is also possible to merge two Fibonacci heaps in constant amortized time, improving on the logarithmic merge time of a binomial heap, and improving on binary heaps which cannot handle merges efficiently.
+
+Using Fibonacci heaps for priority queues improves the asymptotic running time of important algorithms, such as [[Dijkstra's algorithm]] for computing the [[shortest path]] between two nodes in a graph, compared to the same algorithm using other slower priority queue data structures.
+
+== Structure ==
+[[Image:Fibonacci heap.png|thumbnail|250px|Figure 1. Example of a Fibonacci heap. It has three trees of degrees 0, 1 and 3. Three vertices are marked (shown in blue). Therefore, the potential of the heap is 9 (3&amp;nbsp;trees + 2&amp;nbsp;&amp;times;&amp;nbsp;(3&amp;nbsp;marked-vertices)).]]
+A Fibonacci heap is a collection of [[tree data structure|tree]]s satisfying the [[minimum-heap property]], that is, the key of a child is always greater than or equal to the key of the parent. This implies that the minimum key is always at the root of one of the trees. Compared with binomial heaps, the structure of a Fibonacci heap is more flexible. The trees do not have a prescribed shape and in the extreme case the heap can have every element in a separate tree. This flexibility allows some operations to be executed in a [[lazy evaluation|lazy]] manner, postponing the work for later operations. For example, merging heaps is done simply by concatenating the two lists of trees, and operation ''decrease key'' sometimes cuts a node from its parent and forms a new tree.
+
+However, at some point order needs to be introduced to the heap to achieve the desired running time. In particular, degrees of nodes (here degree means the number of children) are kept quite low: every node has degree at most ''O''(log ''n'') and the size of a subtree rooted in a node of degree ''k'' is at least ''F''&lt;sub&gt;''k''+2&lt;/sub&gt;, where ''F&lt;sub&gt;k&lt;/sub&gt;'' is the ''k''th [[Fibonacci number]]. This is achieved by the rule that we can cut at most one child of each non-root node. When a second child is cut, the node itself needs to be cut from its parent and becomes the root of a new tree (see Proof of degree bounds, below). The number of trees is decreased in the operation ''delete minimum'', where trees are linked together.
+
+As a result of a relaxed structure, some operations can take a long time while others are done very quickly. For the [[amortized analysis|amortized running time]] analysis we use the [[potential method]], in that we pretend that very fast operations take a little bit longer than they actually do. This additional time is then later combined and subtracted from the actual running time of slow operations. The amount of time saved for later use is measured at any given moment by a potential function. The potential of a Fibonacci heap is given by
+
+:Potential = ''t'' + 2''m''
+
+where ''t'' is the number of trees in the Fibonacci heap, and ''m'' is the number of marked nodes. A node is marked if at least one of its children was cut since this node was made a child of another node (all roots are unmarked).
+The amortized time for an operation is given by the sum of the actual time and ''c'' times the difference in potential, where ''c'' is a constant (chosen to match the constant factors in the ''O'' notation for the actual time).
+
+Thus, the root of each tree in a heap has one unit of time stored. This unit of time can be used later to link this tree with another tree at amortized time 0. Also, each marked node has two units of time stored. One can be used to cut the node from its parent. If this happens, the node becomes a root and the second unit of time will remain stored in it as in any other root.
+
+== Implementation of operations ==
+To allow fast deletion and concatenation, the roots of all trees are linked using a circular, [[doubly linked list]]. The children of each node are also linked using such a list. For each node, we maintain its number of children and whether the node is marked. Moreover, we maintain a pointer to the root containing the minimum key.
+
+Operation '''find minimum''' is now trivial because we keep the pointer to the node containing it. It does not change the potential of the heap, therefore both actual and amortized cost are constant.
+
+As mentioned above, '''merge''' is implemented simply by concatenating the lists of tree roots of the two heaps. This can be done in constant time and the potential does not change, leading again to constant amortized time.
+
+Operation '''insert''' works by creating a new heap with one element and doing merge. This takes constant time, and the potential increases by one, because the number of trees increases. The amortized cost is thus still constant.
+
+[[Image:Fibonacci heap extractmin1.png|170px|thumb|right|Fibonacci heap from Figure 1 after first phase of extract minimum. Node with key 1 (the minimum) was deleted and its children were added as separate trees.]]
+Operation '''extract minimum''' (same as ''delete minimum'') operates in three phases. First we take the root containing the minimum element and remove it. Its children will become roots of new trees. If the number of children was ''d'', it takes time ''O''(''d'') to process all new roots and the potential increases by ''d''−1. Therefore, the amortized running time of this phase is ''O''(''d'') = ''O''(log ''n'').
+
+[[Image:Fibonacci heap extractmin2.png|130px|thumb|left|Fibonacci heap from Figure 1 after extract minimum is completed. First, nodes 3 and 6 are linked together. Then the result is linked with tree rooted at node 2. Finally, the new minimum is found.]]
+However to complete the extract minimum operation, we need to update the pointer to the root with minimum key. Unfortunately there may be up to ''n'' roots we need to check. In the second phase we therefore decrease the number of roots by successively linking together roots of the same degree. When two roots ''u'' and ''v'' have the same degree, we make one of them a child of the other so that the one with the smaller key remains the root. Its degree will increase by one. This is repeated until every root has a different degree. To find trees of the same degree efficiently we use an array of length ''O''(log ''n'') in which we keep a pointer to one root of each degree. When a second root is found of the same degree, the two are linked and the array is updated. The actual running time is ''O''(log ''n'' + ''m'') where ''m'' is the number of roots at the beginning of the second phase. At the end we will have at most ''O''(log ''n'') roots (because each has a different degree). Therefore, the difference in the potential function from before this phase to after it is: ''O''(log ''n'') − ''m'', and the amortized running time is then at most ''O''(log ''n'' + ''m'') + ''c''(''O''(log ''n'') − ''m''). With a sufficiently large choice of ''c'', this simplifies to ''O''(log ''n'').
+
+In the third phase we check each of the remaining roots and find the minimum. This takes ''O''(log ''n'') time and the potential does not change. The overall amortized running time of extract minimum is therefore ''O''(log ''n'').
+
+[[Image:Fibonacci heap-decreasekey.png|250px|thumb|right|Fibonacci heap from Figure 1 after decreasing key of node 9 to 0. This node as well as its two marked ancestors are cut from the tree rooted at 1 and placed as new roots.]]
+Operation '''decrease key''' will take the node, decrease the key and if the heap property becomes violated (the new key is smaller than the key of the parent), the node is cut from its parent. If the parent is not a root, it is marked. If it has been marked already, it is cut as well and its parent is marked. We continue upwards until we reach either the root or an unmarked node. Now we set the minimum pointer to the decreased value if it is the new minimum. In the process we create some number, say ''k'', of new trees. Each of these new trees except possibly the first one was marked originally but as a root it will become unmarked. One node can become marked. Therefore, the number of marked nodes changes by &amp;minus;(''k''&amp;nbsp;&amp;minus;&amp;nbsp;1)&amp;nbsp;+&amp;nbsp;1&amp;nbsp;=&amp;nbsp;&amp;minus;&amp;nbsp;''k''&amp;nbsp;+&amp;nbsp;2. Combining these 2 changes, the potential changes by 2(&amp;minus;''k''&amp;nbsp;+&amp;nbsp;2)&amp;nbsp;+&amp;nbsp;''k''&amp;nbsp;=&amp;nbsp;&amp;minus;''k''&amp;nbsp;+&amp;nbsp;4. The actual time to perform the cutting was ''O''(''k''), therefore (again with a sufficiently large choice of ''c'') the amortized running time is constant.
+
+Finally, operation '''delete''' can be implemented simply by decreasing the key of the element to be deleted to minus infinity, thus turning it into the minimum of the whole heap. Then we call extract minimum to remove it. The amortized running time of this operation is ''O''(log ''n'').
+
+==Proof of degree bounds==
+The amortized performance of a Fibonacci heap depends on the degree (number of children) of any tree root being ''O''(log ''n''), where ''n'' is the size of the heap.  Here we show that the size of the (sub)tree rooted at any node ''x'' of degree ''d'' in the heap must have size at least ''F&lt;sub&gt;d&lt;/sub&gt;''&lt;sub&gt;+2&lt;/sub&gt;, where ''F&lt;sub&gt;k&lt;/sub&gt;'' is the ''k''th [[Fibonacci number]].  The degree bound follows from this and the fact (easily proved by induction) that &lt;math&gt;F_{d+2} \ge \varphi^d&lt;/math&gt; for all integers &lt;math&gt;d\ge 0&lt;/math&gt;, where &lt;math&gt;\varphi = (1+\sqrt 5)/2 \doteq 1.618&lt;/math&gt;.  (We then have &lt;math&gt;n \ge F_{d+2} \ge \varphi^d&lt;/math&gt;, and taking the log to base &lt;math&gt;\varphi&lt;/math&gt; of both sides gives &lt;math&gt;d\le \log_{\varphi} n&lt;/math&gt; as required.)
+
+Consider any node ''x'' somewhere in the heap (''x'' need not be the root of one of the main trees).  Define '''size'''(''x'') to be the size of the tree rooted at ''x'' (the number of descendants of ''x'', including ''x'' itself).  We prove by induction on the height of ''x'' (the length of a longest simple path from ''x'' to a descendant leaf), that '''size'''(''x'')&amp;nbsp;≥&amp;nbsp;''F&lt;sub&gt;d&lt;/sub&gt;''&lt;sub&gt;+2&lt;/sub&gt;, where ''d'' is the degree of ''x''.
+
+'''Base case:''' If ''x'' has height 0, then ''d''&amp;nbsp;=&amp;nbsp;0, and '''size'''(''x'')&amp;nbsp;=&amp;nbsp;1&amp;nbsp;=&amp;nbsp;''F''&lt;sub&gt;2&lt;/sub&gt;.
+
+'''Inductive case:'''  Suppose ''x'' has positive height and degree ''d''&amp;gt;0.  Let ''y''&lt;sub&gt;1&lt;/sub&gt;, ''y''&lt;sub&gt;2&lt;/sub&gt;, ..., ''y&lt;sub&gt;d&lt;/sub&gt;'' be the children of ''x'', indexed in order of the times they were most recently made children of ''x'' (''y''&lt;sub&gt;1&lt;/sub&gt; being the earliest and ''y&lt;sub&gt;d&lt;/sub&gt;'' the latest), and let ''c''&lt;sub&gt;1&lt;/sub&gt;, ''c''&lt;sub&gt;2&lt;/sub&gt;, ..., ''c&lt;sub&gt;d&lt;/sub&gt;'' be their respective degrees.  We '''claim''' that ''c&lt;sub&gt;i&lt;/sub&gt;''&amp;nbsp;≥&amp;nbsp;''i''-2 for each ''i'' with 2≤''i''≤''d'': Just before ''y&lt;sub&gt;i&lt;/sub&gt;'' was made a child of ''x'', ''y''&lt;sub&gt;1&lt;/sub&gt;,...,''y&lt;sub&gt;i&lt;/sub&gt;''&lt;sub&gt;−1&lt;/sub&gt; were already children of ''x'', and so ''x'' had degree at least ''i''−1 at that time.  Since trees are combined only when the degrees of their roots are equal, it must have been that ''y&lt;sub&gt;i&lt;/sub&gt;'' also had degree at least ''i''-1 at the time it became a child of ''x''.  From that time to the present, ''y&lt;sub&gt;i&lt;/sub&gt;'' can only have lost at most one child (as guaranteed by the marking process), and so its current degree ''c&lt;sub&gt;i&lt;/sub&gt;'' is at least ''i''−2.  This proves the '''claim'''.
+
+Since the heights of all the ''y&lt;sub&gt;i&lt;/sub&gt;'' are strictly less than that of ''x'', we can apply the inductive hypothesis to them to get '''size'''(''y&lt;sub&gt;i&lt;/sub&gt;'')&amp;nbsp;≥&amp;nbsp;''F&lt;sub&gt;c&lt;sub&gt;i&lt;/sub&gt;&lt;/sub&gt;''&lt;sub&gt;+2&lt;/sub&gt;&amp;nbsp;≥&amp;nbsp;''F''&lt;sub&gt;(''i''−2)+2&lt;/sub&gt;&amp;nbsp;=&amp;nbsp;''F&lt;sub&gt;i&lt;/sub&gt;''.  The nodes ''x'' and ''y''&lt;sub&gt;1&lt;/sub&gt; each contribute at least 1 to '''size'''(''x''), and so we have
+
+&lt;math&gt;\textbf{size}(x) \ge 2 + \sum_{i=2}^d \textbf{size}(y_i) \ge 2 + \sum_{i=2}^d F_i = 1 + \sum_{i=0}^d F_i.&lt;/math&gt;
+
+A routine induction proves that &lt;math&gt;1 + \sum_{i=0}^d F_i = F_{d+2}&lt;/math&gt; for any &lt;math&gt;d\ge 0&lt;/math&gt;, which gives the desired lower bound on '''size'''(''x'').
+
+==Worst case==
+Although Fibonacci heaps look very efficient, they have the following two drawbacks (as mentioned in the paper &quot;The Pairing Heap: A new form of Self Adjusting Heap&quot;): &quot;They are complicated when it comes to coding them. Also they are not as efficient in practice when compared with the theoretically less efficient forms of heaps, since in their simplest version they require storage and manipulation of four pointers per node, compared to the two or three pointers per node needed for other structures &quot;.&lt;ref name=FSST&gt;{{cite journal | last1 = Fredman | first1 = Michael L. | author1-link = Michael Fredman | last2 = Sedgewick | first2 = Robert | author2-link = Robert Sedgewick (computer scientist) | last3 = Sleator | first3 = Daniel D. | author3-link = Daniel Sleator | last4 = Tarjan | first4 = Robert E. | author4-link = Robert Tarjan | doi = 10.1007/BF01840439 | issue = 1 | journal = Algorithmica | pages = 111–129 | title = The pairing heap: a new form of self-adjusting heap | url = http://www.cs.cmu.edu/~sleator/papers/pairing-heaps.pdf | volume = 1 | year = 1986}}&lt;/ref&gt; These other structures are referred to [[Binary heap]], [[Binomial heap]], [[Pairing heap|Pairing Heap]], Brodal Heap and Rank Pairing Heap.
+
+Although the total running time of a sequence of operations starting with an empty structure is bounded by the bounds given above, some (very few) operations in the sequence can take very long to complete (in particular delete and delete minimum have linear running time in the worst case). For this reason Fibonacci heaps and other amortized data structures may not be appropriate for [[real-time computing|real-time systems]]. It is possible to create a data structure which has the same worst-case performance as the Fibonacci heap has amortized performance. One such structure, the [[Brodal queue]],&lt;ref name=&quot;bare_url&quot;&gt;{{Citation |citeseerx=10.1.1.43.8133 |title=Worst-Case Efficient Priority Queues |year=1996 |author=Gerth Stølting Brodal |journal=Proc. 7th ACM-SIAM Symposium on Discrete Algorithms |publisher=[[Society for Industrial and Applied Mathematics]] |pages=52–58 |doi=10.1145/313852.313883 |isbn=0-89871-366-8}}&lt;/ref&gt; is, in the words of the creator, &quot;quite complicated&quot; and &quot;[not] applicable in practice.&quot; Created in 2012, the strict Fibonacci heap&lt;ref&gt;{{Cite conference |doi=10.1145/2213977.2214082 |title=Strict Fibonacci heaps |conference=Proceedings of the 44th symposium on Theory of Computing - STOC '12 |pages=1177 |year=2012 |last1=Brodal |first1=G. S. L. |last2=Lagogiannis |first2=G. |last3=Tarjan |first3=R. E. |isbn=978-1-4503-1245-5 |url=http://www.cs.au.dk/~gerth/papers/stoc12.pdf }}&lt;/ref&gt; is a simpler (compared to Brodal's) structure with the same worst-case bounds. It is unknown whether the strict Fibonacci heap is efficient in practice. The run-relaxed heaps of Driscoll et al. give good worst-case performance for all Fibonacci heap operations except merge.
+
+==Summary of running times==
+{{Heap Running Times}}
+
+==Practical considerations==
+{{expand section|date=February 2015}}
+Fibonacci heaps have a reputation for being slow in practice&lt;ref&gt;http://www.cs.princeton.edu/~wayne/kleinberg-tardos/pdf/FibonacciHeaps.pdf, p. 79&lt;/ref&gt; due to large memory consumption per node and high constant factors on all operations.&lt;ref&gt;http://web.stanford.edu/class/cs166/lectures/07/Small07.pdf, p. 72&lt;/ref&gt;  Recent experimental results suggest that Fibonacci heaps are more efficient in practice than most of its later derivatives, including quake heaps, violation heaps, strict Fibonacci heaps, rank pairing heaps, but less efficient than either pairing heaps or array-based heaps.&lt;ref&gt;{{cite journal|last1=Larkin|first1=Daniel|last2=Sen|first2=Siddhartha|last3=Tarjan|first3=Robert|title=A Back-to-Basics Empirical Study of Priority Queues|journal=Proceedings of the Sixteenth Workshop on Algorithm Engineering and Experiments|date=2014|pages=61–72|doi=10.1137/1.9781611973198.7|arxiv=1403.0252}}&lt;/ref&gt;
+
+== References ==
+{{reflist}}
+
+== External links ==
+* [http://www.cs.yorku.ca/~aaw/Jason/FibonacciHeapAnimation.html Java applet simulation of a Fibonacci heap]
+* [http://www.mathworks.com/matlabcentral/fileexchange/30072-fibonacci-heap MATLAB implementation of Fibonacci heap]
+* [http://www.labri.fr/perso/pelegrin/code/#fibonacci De-recursived and memory efficient C implementation of Fibonacci heap] (free/libre software, [http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html CeCILL-B license])
+* [https://github.com/evansenter/f_heap Ruby implementation of the Fibonacci heap (with tests)]
+* [http://www.cs.princeton.edu/~wayne/cs423/fibonacci/FibonacciHeapAlgorithm.html Pseudocode of the Fibonacci heap algorithm]
+* [https://stackoverflow.com/q/6273833/194609 Various Java Implementations for Fibonacci heap]
+
+{{Data structures}}
+
+{{DEFAULTSORT:Fibonacci Heap}}
+[[Category:Fibonacci numbers]]
+[[Category:Heaps (data structures)]]</rev></revisions></page></pages></query></api>
